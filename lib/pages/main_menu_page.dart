@@ -5,6 +5,7 @@ import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:millennio/pages/quiz_page.dart';
 import 'package:millennio/widgets/toast_widget.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:millennio/pages/settings_page.dart';
@@ -29,9 +30,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
   bool isValidQuery = false;
   bool enableLoading = false;
   bool hideExample = false;
-
-  GlobalKey textFieldKey = GlobalKey();
-  GlobalKey goButtonKey = GlobalKey();
 
   bool noInternet = false;
   int typeIsMovie = 0; //0 = movie 1 = show
@@ -81,7 +79,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                   size: 26,
                 ),
                 onPressed: () {
-                  typeIsMovie == 0 ? showExamples() : showExamplesShows();
+                  showExamples();
                 },
               ),
             ),
@@ -144,7 +142,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   Widget description() {
     return Text(
-      "find_something".tr(),
+      "quiz_about".tr(),
       textAlign: TextAlign.center,
       style: Theme.of(context).textTheme.displayMedium,
     );
@@ -154,20 +152,19 @@ class _MainMenuPageState extends State<MainMenuPage> {
     return SizedBox(
       height: 80,
       child: TextField(
-        key: textFieldKey,
         autofocus: false,
         maxLength: 60,
         showCursor: true,
         maxLines: 1,
         minLines: 1,
         controller: _controller,
-        cursorColor: Theme.of(context).primaryColor,
+        cursorColor: Theme.of(context).focusColor,
         style: Theme.of(context).textTheme.titleMedium,
         decoration: InputDecoration(
           filled: true,
-          fillColor: const Color.fromRGBO(35, 35, 50, 1),
+          fillColor: Theme.of(context).primaryColorDark,
           helperText: "complete_sentence".tr(),
-          hintText: typeIsMovie == 0 ? "recommend_a_movie".tr() : "recommend_a_show".tr(),
+          hintText: "generate_a_quiz".tr(),
           prefixStyle: Theme.of(context).textTheme.displaySmall!.copyWith(fontSize: 12),
           suffixText: "",
           helperStyle: TextStyle(
@@ -180,11 +177,11 @@ class _MainMenuPageState extends State<MainMenuPage> {
           ),
           contentPadding: const EdgeInsets.only(left: 14.0, bottom: 10.0, top: 10.0),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
+            borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
             borderRadius: BorderRadius.circular(15),
           ),
           enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2.0),
+            borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
             borderRadius: BorderRadius.circular(15),
           ),
         ),
@@ -201,7 +198,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
             child: Container(),
           ),
           TextButton(
-            key: goButtonKey,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.all(0),
             ),
@@ -215,7 +211,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                 borderRadius: const BorderRadius.all(
                   Radius.circular(25),
                 ),
-                color: isLongEnough ? Colors.orange : Colors.grey,
+                color: isLongEnough ? Theme.of(context).focusColor : Colors.grey[600],
               ),
               child: Center(
                 child: enableLoading
@@ -243,12 +239,12 @@ class _MainMenuPageState extends State<MainMenuPage> {
 
   void checkLength() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_controller.text.length > 5 && mounted) {
+      if (_controller.text.length > 3 && mounted) {
         setState(() {
           isLongEnough = true;
         });
       }
-      if (_controller.text.length < 5 && mounted) {
+      if (_controller.text.length < 3 && mounted) {
         setState(() {
           isLongEnough = false;
         });
@@ -259,11 +255,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
   validateQuery() async {
     final request = ChatCompleteText(
       messages: [
-        Messages(
-            role: Role.assistant,
-            content: typeIsMovie == 0
-                ? 'validation_prompt'.tr() + _controller.text
-                : 'validation_prompt_series'.tr() + _controller.text),
+        Messages(role: Role.assistant, content: 'validation_prompt'.tr() + _controller.text),
       ],
       maxToken: 400,
       model: GptTurbo0301ChatModel(),
@@ -316,11 +308,11 @@ class _MainMenuPageState extends State<MainMenuPage> {
         });
         await validateQuery();
         if (isValidQuery && context.mounted) {
-          // Navigator.of(context).push(
-          //   MaterialPageRoute(
-          //     builder: (context) => RecommandationResultsPage(requestString: _controller.text, type: typeIsMovie),
-          //   ),
-          // );
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => QuizPage(requestString: _controller.text),
+            ),
+          );
         } else {
           showToastWidget(
             ToastWidget(
@@ -391,71 +383,6 @@ class _MainMenuPageState extends State<MainMenuPage> {
             const SizedBox(height: 12),
             Text(
               "example_5".tr(),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void showExamplesShows() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: ShapeBorder.lerp(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          1,
-        )!,
-        backgroundColor: Colors.grey[900]!,
-        title: Text("need_inspiration".tr()),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "example_show_1".tr(),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: Colors.grey[800],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "example_show_2".tr(),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: Colors.grey[800],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "example_show_3".tr(),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: Colors.grey[800],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "example_show_4".tr(),
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: Colors.grey[800],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "example_show_5".tr(),
               style: Theme.of(context).textTheme.displaySmall,
             ),
           ],

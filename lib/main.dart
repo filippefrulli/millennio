@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
           splashColor: Colors.transparent,
           primaryColor: const Color.fromRGBO(88, 73, 219, 1),
           focusColor: const Color.fromRGBO(255, 179, 128, 1),
+          primaryColorDark: const Color.fromRGBO(78, 66, 169, 1),
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
           fontFamily: 'Raleway',
