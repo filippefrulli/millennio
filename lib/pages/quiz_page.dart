@@ -24,9 +24,14 @@ class _QuizPageState extends State<QuizPage> {
 
   int index = 0;
   int length = 0;
+  int score = 0;
+  int initalScore = 0;
   bool askingGpt = false;
   bool fetchingQuestions = false;
   bool filtering = false;
+
+  bool showAnswer = false;
+  int givenAnswer = 0;
 
   final _controller = TextEditingController();
 
@@ -35,7 +40,6 @@ class _QuizPageState extends State<QuizPage> {
   @override
   initState() {
     super.initState();
-
     resultList = askGpt();
   }
 
@@ -59,19 +63,21 @@ class _QuizPageState extends State<QuizPage> {
           future: resultList,
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data.length > 0) {
-              return Column(children: [
-                Text(
-                  "what_year".tr(),
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                Text(
-                  length != 0 ? '${index + 1} / $length' : '',
-                  style: Theme.of(context).textTheme.bodySmall,
-                )
-              ]);
+              return Column(
+                children: [
+                  Text(
+                    '${widget.requestString} Quiz',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    '$score points',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  )
+                ],
+              );
             } else {
               return Expanded(
                 child: Container(),
@@ -102,6 +108,9 @@ class _QuizPageState extends State<QuizPage> {
       height: MediaQuery.of(context).size.height * 0.85,
       child: Column(
         children: [
+          const SizedBox(
+            height: 64,
+          ),
           // Expanded(
           //   flex: 20,
           //   child: quizImage(
@@ -109,21 +118,22 @@ class _QuizPageState extends State<QuizPage> {
           //   ),
           // ),
           Expanded(
-            flex: 20,
-            child: Center(
-              child: Text(
-                quizItem.question,
-                textAlign: TextAlign.center,
-              ),
-            ),
+            child: questionWidget(quizItem.question),
           ),
           Expanded(
             flex: 1,
             child: Container(),
           ),
+          showAnswer
+              ? Expanded(
+                  flex: 3,
+                  child: resultWidget(quizItem.year),
+                )
+              : Container(),
+
           Expanded(
-            flex: 3,
-            child: answerBox(),
+            flex: 1,
+            child: showAnswer ? okButton(quizItem.year) : answerBox(),
           ),
           Expanded(
             flex: 1,
@@ -134,24 +144,105 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
+  Widget okButton(int year) {
+    return TextButton(
+      onPressed: () {
+        if (mounted) {
+          setState(
+            () {
+              showAnswer = false;
+              index++;
+              score += calculateScore(year);
+              _controller.clear();
+            },
+          );
+        }
+      },
+      child: Container(
+        height: 50,
+        width: 80,
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(25),
+          ),
+          color: Theme.of(context).focusColor,
+        ),
+        child: Center(
+          child: Text(
+            "OK",
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.grey[900],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget questionWidget(String question) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
+        ),
+        border: Border.all(
+          color: Theme.of(context).primaryColorLight,
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          question,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.displayMedium,
+        ),
+      ),
+    );
+  }
+
+  Widget resultWidget(int year) {
+    return Column(
+      children: [
+        Text(
+          'Answer: $year',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.displayLarge,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          givenAnswer.toString(),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 30,
+            color: givenAnswer == year ? Colors.green : Colors.red,
+          ),
+        ),
+        const SizedBox(height: 32),
+        givenAnswer == year ? Text('Correct!') : Text('${calculateScore(year)} points'),
+      ],
+    );
+  }
+
   Widget answerBox() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Container(),
         ),
         SizedBox(
           height: 120,
-          width: 200,
+          width: 180,
           child: TextField(
-            autofocus: false,
+            autofocus: true,
             maxLength: 4,
             keyboardType: TextInputType.number,
             showCursor: true,
             controller: _controller,
             cursorColor: Theme.of(context).focusColor,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.titleLarge,
             decoration: InputDecoration(
               filled: true,
               fillColor: Theme.of(context).primaryColorDark,
@@ -159,15 +250,19 @@ class _QuizPageState extends State<QuizPage> {
               contentPadding: const EdgeInsets.only(left: 14.0, bottom: 10.0, top: 10.0),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(10),
               ),
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
           ),
         ),
+        const SizedBox(
+          width: 16,
+        ),
+        acceptButton(),
         Expanded(
           child: Container(),
         ),
@@ -176,31 +271,39 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Widget quizImage(String poster) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(
+    return const ClipRRect(
+      borderRadius: BorderRadius.all(
         Radius.circular(25),
       ),
     );
   }
 
   Widget acceptButton() {
-    return Center(
-      child: DelayedDisplay(
-        delay: const Duration(milliseconds: 100),
-        child: Container(
-          height: 60,
-          width: 150,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(
-              Radius.circular(25),
-            ),
-            color: Colors.orange,
+    return DelayedDisplay(
+      delay: const Duration(milliseconds: 100),
+      child: Container(
+        height: 50,
+        width: 60,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(
+            Radius.circular(10),
           ),
-          child: TextButton(
-              onPressed: () async {
-                //parseAnswer()
-              },
-              child: const Icon(Icons.check, color: Colors.white, size: 30)),
+          color: Colors.orange,
+        ),
+        child: TextButton(
+          onPressed: () {
+            if (mounted) {
+              setState(() {
+                showAnswer = true;
+                givenAnswer = int.parse(_controller.text);
+              });
+            }
+          },
+          child: const Icon(
+            Icons.check,
+            color: Colors.white,
+            size: 30,
+          ),
         ),
       ),
     );
@@ -252,7 +355,6 @@ class _QuizPageState extends State<QuizPage> {
     );
 
     final response = await openAI.onChatCompletion(request: request);
-    print(response!.choices[0].message!.content);
 
     setState(() {
       askingGpt = false;
@@ -287,11 +389,15 @@ class _QuizPageState extends State<QuizPage> {
         quizItemList.add(
           QuizItem(
             question: list[0],
-            year: list[1],
+            year: int.parse(
+              list[1],
+            ),
           ),
         );
       } else {}
     }
+
+    getInitialScore(quizItemList);
 
     setState(() {
       fetchingQuestions = false;
@@ -299,11 +405,43 @@ class _QuizPageState extends State<QuizPage> {
 
     return quizItemList;
   }
+
+  int calculateScore(int year) {
+    if (givenAnswer == year && mounted) {
+      return initalScore ~/ 5;
+    } else if (mounted) {
+      int res = givenAnswer - year;
+      if (res > 0) {
+        res = res * -1;
+      }
+      return res;
+    }
+    return 0;
+  }
+
+  getInitialScore(List<QuizItem> quizItemList) {
+    int min = 3000;
+    int max = 0;
+    for (QuizItem item in quizItemList) {
+      if (item.year < min) {
+        min = item.year;
+      }
+      if (item.year > max) {
+        max = item.year;
+      }
+    }
+    if (mounted) {
+      setState(() {
+        score = max - min;
+        initalScore = max - min;
+      });
+    }
+  }
 }
 
 class QuizItem {
   final String question;
-  final String year;
+  final int year;
 
   QuizItem({required this.question, required this.year});
 }

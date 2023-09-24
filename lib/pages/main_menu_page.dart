@@ -168,12 +168,12 @@ class _MainMenuPageState extends State<MainMenuPage> {
           prefixStyle: Theme.of(context).textTheme.displaySmall!.copyWith(fontSize: 12),
           suffixText: "",
           helperStyle: TextStyle(
-            color: Colors.grey[500],
+            color: Colors.grey[400],
             fontSize: 12,
           ),
           hintStyle: TextStyle(
-            color: Colors.grey[500],
-            fontSize: 12,
+            color: Colors.grey[200],
+            fontSize: 16,
           ),
           contentPadding: const EdgeInsets.only(left: 14.0, bottom: 10.0, top: 10.0),
           focusedBorder: OutlineInputBorder(
@@ -211,7 +211,7 @@ class _MainMenuPageState extends State<MainMenuPage> {
                 borderRadius: const BorderRadius.all(
                   Radius.circular(25),
                 ),
-                color: isLongEnough ? Theme.of(context).focusColor : Colors.grey[600],
+                color: isLongEnough ? Theme.of(context).focusColor : const Color.fromRGBO(107, 107, 107, 0.3),
               ),
               child: Center(
                 child: enableLoading

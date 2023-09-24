@@ -66,6 +66,7 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color.fromRGBO(88, 73, 219, 1),
           focusColor: const Color.fromRGBO(255, 179, 128, 1),
           primaryColorDark: const Color.fromRGBO(78, 66, 169, 1),
+          primaryColorLight: const Color.fromRGBO(144, 135, 229, 1),
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent,
           fontFamily: 'Raleway',
@@ -86,7 +87,7 @@ class MyApp extends StatelessWidget {
               letterSpacing: 1.2,
             ),
             displaySmall: TextStyle(
-              fontSize: 16.0,
+              fontSize: 18.0,
               color: Colors.grey[200],
               fontWeight: FontWeight.w600,
               letterSpacing: 1.2,
@@ -117,7 +118,7 @@ class MyApp extends StatelessWidget {
             ),
             bodySmall: TextStyle(
               fontSize: 15.0,
-              color: Colors.grey[600],
+              color: Colors.grey[200],
               fontWeight: FontWeight.w600,
             ),
             bodyLarge: TextStyle(

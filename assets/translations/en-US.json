@@ -9,6 +9,8 @@
     "invalid_input": "Inalid input, please change your query and try again",
     "what_year": "What year did this happen?",
 
+    "generating": "Generating quiz items",
+
     "prompt_1": "Your task is to generate 10 quiz items, where a quiz item is composed by a question and a year as an answer, in the format \"question y:year,, question y:year etc\" in one line and not as a numbered list Here is an exmple: Fall of the Roman Empire of the West y:476,, The eruption of Mount Vesuvius buried the cities of Pompeii and Herculaneum in volcanic ash and rock. y:79. The question should always refer to the year in which that thing happened. Generate the quiz about ",
     "prompt_2": ". Do not number the response items!!. Do not formulate the questions like \"When did X happen\" but rather \"X happened\"",
 
@@ -30,7 +32,6 @@
 
     "watch_it_on": "Available on:",
     "accept": "Accept",
-    "generating": "Generating recommendations",
     "fetching": "Fetching content information",
     "filtering": "Filtering by your services",
     "director": "Director: ",
