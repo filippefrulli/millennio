@@ -4,7 +4,6 @@ import 'package:chat_gpt_sdk/chat_gpt_sdk.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:millennio/pages/quiz_page.dart';
 import 'package:millennio/widgets/toast_widget.dart';
 import 'package:oktoast/oktoast.dart';
@@ -29,17 +28,14 @@ class _MainMenuPageState extends State<MainMenuPage> {
   bool isLongEnough = false;
   bool isValidQuery = false;
   bool enableLoading = false;
-  bool hideExample = false;
 
   bool noInternet = false;
-  int typeIsMovie = 0; //0 = movie 1 = show
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(checkLength);
     _controller.text = '';
-    hideExample = false;
   }
 
   @override
@@ -63,36 +59,42 @@ class _MainMenuPageState extends State<MainMenuPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 32),
             topBar(),
             Expanded(
-              flex: 2,
               child: Container(),
             ),
             description(),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: Icon(
-                  Icons.help_outline_rounded,
-                  color: Theme.of(context).primaryColor,
-                  size: 26,
-                ),
-                onPressed: () {
-                  showExamples();
-                },
-              ),
-            ),
-            const SizedBox(height: 2),
-            promptInput(),
-            const SizedBox(height: 16),
             Expanded(
-              flex: 2,
               child: Container(),
             ),
-            goButton(),
-            const SizedBox(height: 32),
+            examplesWidget(),
+            const SizedBox(height: 16),
+            promptInput(),
+            const SizedBox(height: 16),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget examplesWidget() {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[400],
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: IconButton(
+          icon: Icon(
+            Icons.help_outline_rounded,
+            color: Colors.grey[900],
+            size: 26,
+          ),
+          onPressed: () {
+            showExamples();
+          },
         ),
       ),
     );
@@ -149,90 +151,70 @@ class _MainMenuPageState extends State<MainMenuPage> {
   }
 
   Widget promptInput() {
-    return SizedBox(
-      height: 80,
-      child: TextField(
-        autofocus: false,
-        maxLength: 60,
-        showCursor: true,
-        maxLines: 1,
-        minLines: 1,
-        controller: _controller,
-        cursorColor: Theme.of(context).focusColor,
-        style: Theme.of(context).textTheme.titleMedium,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Theme.of(context).primaryColorDark,
-          helperText: "complete_sentence".tr(),
-          hintText: "generate_a_quiz".tr(),
-          prefixStyle: Theme.of(context).textTheme.displaySmall!.copyWith(fontSize: 12),
-          suffixText: "",
-          helperStyle: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 12,
-          ),
-          hintStyle: TextStyle(
-            color: Colors.grey[200],
-            fontSize: 16,
-          ),
-          contentPadding: const EdgeInsets.only(left: 14.0, bottom: 10.0, top: 10.0),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Theme.of(context).focusColor, width: 2.0),
-            borderRadius: BorderRadius.circular(15),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width - 88,
+          child: TextField(
+            autofocus: false,
+            showCursor: true,
+            maxLength: 80,
+            maxLines: 3,
+            minLines: 1,
+            controller: _controller,
+            cursorColor: Colors.orange,
+            style: TextStyle(
+              color: Colors.grey[200],
+              fontSize: 16,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.grey[600],
+              helperText: "complete_sentence".tr(),
+              hintText: "generate_a_quiz".tr(),
+              helperStyle: TextStyle(
+                color: Colors.grey[200],
+                fontSize: 12,
+              ),
+              contentPadding: const EdgeInsets.only(left: 14.0, bottom: 10.0, top: 10.0),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
           ),
         ),
-      ),
+        const SizedBox(
+          width: 8,
+        ),
+        goButton(),
+      ],
     );
   }
 
   Widget goButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(),
+    return Container(
+      height: 48,
+      width: 48,
+      decoration: BoxDecoration(
+        color: isLongEnough ? Colors.orange : Colors.grey[700],
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Center(
+        child: IconButton(
+          onPressed: () async {
+            goButtonPressed();
+          },
+          icon: Icon(
+            Icons.arrow_forward,
+            size: 32,
+            color: Colors.grey[900],
           ),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.all(0),
-            ),
-            onPressed: () async {
-              goButtonPressed();
-            },
-            child: Container(
-              height: 50,
-              width: 160,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(25),
-                ),
-                color: isLongEnough ? Theme.of(context).focusColor : const Color.fromRGBO(107, 107, 107, 0.3),
-              ),
-              child: Center(
-                child: enableLoading
-                    ? LoadingAnimationWidget.threeArchedCircle(
-                        color: Colors.grey[900]!,
-                        size: 30,
-                      )
-                    : Text(
-                        "go".tr(),
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.grey[900],
-                        ),
-                      ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(),
-          ),
-        ],
+        ),
       ),
     );
   }

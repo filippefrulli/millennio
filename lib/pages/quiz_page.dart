@@ -132,7 +132,7 @@ class _QuizPageState extends State<QuizPage> {
               : Container(),
 
           Expanded(
-            flex: 1,
+            flex: 2,
             child: showAnswer ? okButton(quizItem.year) : answerBox(),
           ),
           Expanded(
@@ -367,6 +367,8 @@ class _QuizPageState extends State<QuizPage> {
     setState(() {
       fetchingQuestions = true;
     });
+
+    print(response);
 
     List<QuizItem> quizItemList = [];
 
